@@ -279,7 +279,7 @@ body {
     box-shadow: 0 0 0 3px rgba(106, 141, 146, 0.2);
 }
 
-.todo-input button, #addImage, #saveEssay,, #cancelEditEssay{
+.todo-input button, #addImage, #saveEssay, #cancelEditEssay{
     padding: 0 18px;
     background-color: var(--primary-color);
     color: var(--white);
@@ -294,7 +294,7 @@ body {
 }
 
 
-.todo-input button:hover, #addImage:hover,{
+.todo-input button:hover, #addImage:hover{
     background-color: var(--primary-dark);
 }
 
@@ -669,7 +669,11 @@ body {
         padding: 15px;
     }
     
-    .todo-input, .essay-actions, .future-todos-section .todo-input {
+    .todo-input {
+        flex-direction: row; 
+    }
+
+     .essay-actions, .future-todos-section .todo-input {
         flex-direction: column;
     }
     
@@ -678,14 +682,28 @@ body {
     }
     
     .todo-input button {
-        border-radius: 8px;
+        border-radius: 0 8px 8px 0;
     }
     
     .mood-options i {
         font-size: 22px;
     }
     
+    .future-todos-section .todo-input {
+        flex-direction: column;
+    }
+    
+    .future-todos-section .todo-input input {
+        border-radius: 8px;
+    }
+    
+    .future-todos-section .todo-input button {
+        border-radius: 8px;
+        width: 100%;
+    }
+    
     .future-todos-section .todo-input select {
+        border-radius: 8px;
         width: 100%;
     }
 }
