@@ -279,7 +279,7 @@ body {
     box-shadow: 0 0 0 3px rgba(106, 141, 146, 0.2);
 }
 
-.todo-input button, #addImage, #saveEssay, #addFutureTodo , #cancelEditEssay{
+.todo-input button, #addImage, #saveEssay,, #cancelEditEssay{
     padding: 0 18px;
     background-color: var(--primary-color);
     color: var(--white);
@@ -294,7 +294,7 @@ body {
 }
 
 
-.todo-input button:hover, #addImage:hover, #addFutureTodo:hover{
+.todo-input button:hover, #addImage:hover,{
     background-color: var(--primary-dark);
 }
 
