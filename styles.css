@@ -554,6 +554,7 @@ body {
 }
 
 #cancelEditEssay {
+    margin-left: auto;
     background-color: var(--error-color);
     color: white;
 }
