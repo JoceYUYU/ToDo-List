@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初始化日历
     initCalendar(today);
-    
-    // 加载当天的日记数据
+
+    // 加载当天数据
     loadJournalData(dateStr);
     
     // 日期选择器点击事件
@@ -24,77 +24,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 心情选择
-    document.querySelectorAll('.mood-options i').forEach(icon => {
-        icon.addEventListener('click', function() {
-            document.querySelectorAll('.mood-options i').forEach(i => i.classList.remove('selected'));
-            this.classList.add('selected');
-            
-            // 保存心情
-            const date = document.getElementById('journalDate').textContent;
-            let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
-            if (!journalData[date]) journalData[date] = { todos: [], essay: { text: '', images: [] }, mood: '' };
-            
-            journalData[date].mood = this.getAttribute('data-mood');
-            localStorage.setItem('journalData', JSON.stringify(journalData));
-        });
-    });
+    initMoodSelector(dateStr)
     
-    // 随笔编辑功能
-    const editEssayBtn = document.getElementById('editEssayBtn');
-    const essayInput = document.getElementById('essayInput');
-    const essayContent = document.getElementById('essayContent');
-    const cancelEditEssay = document.getElementById('cancelEditEssay');
+    // 随笔
+    initEssayEditor();
     
-    editEssayBtn.addEventListener('click', function() {
-        // 进入编辑模式
-        document.querySelector('.essay-section').classList.add('essay-edit-mode');
-        
-        // 将现有内容填充到编辑区域
-        const currentText = essayContent.querySelector('.essay-text')?.textContent || '';
-        document.getElementById('newEssay').value = currentText;
-    });
-    
-    cancelEditEssay.addEventListener('click', function() {
-        // 退出编辑模式
-        document.querySelector('.essay-section').classList.remove('essay-edit-mode');
-    });
-    
-    // 添加图片
-    document.getElementById('addImage').addEventListener('click', function() {
-        document.getElementById('essayImage').click();
-    });
-    
-    document.getElementById('essayImage').addEventListener('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const imageContainer = document.createElement('div');
-                imageContainer.className = 'essay-image-container';
-                imageContainer.innerHTML = `
-                    <img src="${event.target.result}" class="essay-image">
-                    <button class="remove-image" title="删除图片">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                `;
-                
-                document.getElementById('essayContent').appendChild(imageContainer);
-                
-                // 添加删除图片事件
-                imageContainer.querySelector('.remove-image').addEventListener('click', function() {
-                    imageContainer.remove();
-                });
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
-    
-    // 保存随笔
-    document.getElementById('saveEssay').addEventListener('click', saveEssay);
-    
-    // 初始化未来七天日期选择器
+    // 未来七天日期选择
     initFutureDateSelector(dateStr);
-    
-    // 添加未来待办事项
     document.getElementById('addFutureTodo').addEventListener('click', addFutureTodo);
     document.getElementById('newFutureTodo').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') addFutureTodo();
@@ -112,7 +48,7 @@ function initCalendar(selectedDate) {
     const calendar = document.getElementById('calendar');
     const today = new Date();
     
-    // 创建日历头部
+    //日历头部
     const header = document.createElement('div');
     header.className = 'calendar-header';
     
@@ -158,6 +94,7 @@ function initCalendar(selectedDate) {
         const year = date.getFullYear();
         const month = date.getMonth();
         
+        /*日历的算法*/
         // 更新月份标题
         document.getElementById('monthYear').textContent = `${year}年 ${month + 1}月`;
         
@@ -189,50 +126,42 @@ function initCalendar(selectedDate) {
             dayElement.className = 'calendar-day';
             dayElement.textContent = i;
             
-            // 检查是否是今天
+            //检查
             const currentDate = new Date(year, month, i);
             if (currentDate.toDateString() === today.toDateString()) {
                 dayElement.classList.add('today');
             }
             
-            // 检查是否是选中的日期
             const selectedDate = document.getElementById('journalDate').textContent;
             const formattedDate = formatDate(currentDate);
             if (formattedDate === selectedDate) {
                 dayElement.classList.add('selected');
             }
             
-            // 添加点击事件
+            // 添加点击事件，更新选中的日期（日记，未来日期，加载数据）
             dayElement.addEventListener('click', () => {
-                // 更新选中的日期
                 document.querySelectorAll('.calendar-day').forEach(day => {
                     day.classList.remove('selected');
                 });
                 dayElement.classList.add('selected');
                 
-                // 更新日记日期
                 const newDate = formatDate(currentDate);
                 document.getElementById('journalDate').textContent = newDate;
                 document.getElementById('datePicker').value = newDate;
-                
-                // 更新未来日期选择器
                 initFutureDateSelector(newDate);
-                
-                // 加载新日期的日记数据
                 loadJournalData(newDate);
                 
-                // 隐藏日历
+                //隐藏
                 document.getElementById('calendar').classList.remove('show');
             });
             
             daysGrid.appendChild(dayElement);
         }
         
-        // 计算需要添加的下个月日期数量
+        //添加下个月日期
         const totalCells = firstDayOfWeek + lastDay.getDate();
         const nextMonthDays = totalCells <= 35 ? 35 - totalCells : 42 - totalCells;
-        
-        // 添加下个月的日期
+
         for (let i = 1; i <= nextMonthDays; i++) {
             const dayElement = document.createElement('div');
             dayElement.className = 'calendar-day other-month';
@@ -253,7 +182,7 @@ function loadJournalData(date) {
     // 从本地存储加载数据
     let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
     
-    // 如果该日期没有数据，初始化一个空对象
+    // 如果该日期没有数据
     if (!journalData[date]) {
         journalData[date] = { todos: [], essay: { text: '', images: [] }, mood: '' };
         localStorage.setItem('journalData', JSON.stringify(journalData));
@@ -261,7 +190,7 @@ function loadJournalData(date) {
     
     const data = journalData[date];
     
-    // 加载待办事项
+    //加载待办
     const todoList = document.getElementById('todoList');
     todoList.innerHTML = '';
     
@@ -277,44 +206,6 @@ function loadJournalData(date) {
             </div>
         `;
         todoList.appendChild(li);
-        
-        // 添加复选框事件
-        li.querySelector('input[type="checkbox"]').addEventListener('change', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
-            journalData[date].todos[index].completed = this.checked;
-            localStorage.setItem('journalData', JSON.stringify(journalData));
-            
-            // 更新UI
-            this.parentElement.classList.toggle('completed', this.checked);
-        });
-        
-        // 添加编辑事件
-        li.querySelector('.edit-todo').addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            const todoText = document.querySelector(`.todo-item:nth-child(${index + 1}) .todo-text`);
-            const newText = prompt('编辑任务:', todoText.textContent);
-            
-            if (newText !== null) {
-                let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
-                journalData[date].todos[index].text = newText;
-                localStorage.setItem('journalData', JSON.stringify(journalData));
-                
-                todoText.textContent = newText;
-            }
-        });
-        
-        // 添加删除事件
-        li.querySelector('.delete-todo').addEventListener('click', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
-            journalData[date].todos.splice(index, 1);
-            localStorage.setItem('journalData', JSON.stringify(journalData));
-            
-            // 重新加载今日和未来待办事项
-            loadJournalData(date);
-            loadFutureTodos(date);
-        });
     });
     
     // 加载随笔
@@ -339,18 +230,6 @@ function loadJournalData(date) {
                 </button>
             `;
             essayContent.appendChild(imageContainer);
-            
-            // 添加删除图片事件
-            imageContainer.querySelector('.remove-image').addEventListener('click', function() {
-                // 从存储中删除图片
-                let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
-                const index = data.essay.images.indexOf(imgSrc);
-                if (index !== -1) {
-                    journalData[date].essay.images.splice(index, 1);
-                    localStorage.setItem('journalData', JSON.stringify(journalData));
-                    imageContainer.remove();
-                }
-            });
         });
     }
     
@@ -363,9 +242,6 @@ function loadJournalData(date) {
             }
         });
     }
-    
-    // 退出编辑模式
-    document.querySelector('.essay-section').classList.remove('essay-edit-mode');
     
     // 加载未来七天待办事项
     loadFutureTodos(date);
@@ -395,42 +271,125 @@ function addTodo() {
     }
 }
 
-function saveEssay() {
-    const date = document.getElementById('journalDate').textContent;
-    const essayText = document.getElementById('newEssay').value.trim();
+function initMoodSelector(currentDate) {
+    document.querySelectorAll('.mood-options i').forEach(icon => {
+        icon.addEventListener('click', function() {
+            document.querySelectorAll('.mood-options i').forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // 保存心情
+            const date = document.getElementById('journalDate').textContent;
+            let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
+            if (!journalData[date]) journalData[date] = { todos: [], essay: { text: '', images: [] }, mood: '' };
+            
+            journalData[date].mood = this.getAttribute('data-mood');
+            localStorage.setItem('journalData', JSON.stringify(journalData));
+        });
+    });
+}
+
+function initEssayEditor() {
+    // 使用事件委托处理删除图片按钮，放在顶部保证可以删除已有图片
+    document.getElementById('essayContent').addEventListener('click', function(e) {
+        if (e.target.closest('.remove-image') || 
+            (e.target.tagName === 'I' && e.target.closest('.remove-image'))) {
+            e.preventDefault();
+            const imageContainer = e.target.closest('.essay-image-container');
+            if (imageContainer) {
+                imageContainer.remove();
+            }
+        }
+    });
+
+    const editEssayBtn = document.getElementById('editEssayBtn');
     const essayContent = document.getElementById('essayContent');
+    const cancelEditEssay = document.getElementById('cancelEditEssay');
+    const saveEssayBtn = document.getElementById('saveEssay');
+    const addImageBtn = document.getElementById('addImage');
+    const essayImageInput = document.getElementById('essayImage');
     
-    // 收集所有图片的Base64数据
-    let images = [];
-    essayContent.querySelectorAll('.essay-image').forEach(img => {
-        images.push(img.src);
+    // 进入编辑模式
+    editEssayBtn.addEventListener('click', function() {
+        document.querySelector('.essay-section').classList.add('essay-edit-mode');
+        
+        // 将现有内容填充到编辑区域
+        const currentText = essayContent.querySelector('.essay-text')?.textContent || '';
+        document.getElementById('newEssay').value = currentText;
     });
     
-    let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
+    // 取消编辑
+    cancelEditEssay.addEventListener('click', function() {
+        document.querySelector('.essay-section').classList.remove('essay-edit-mode');
+    });
     
-    if (!journalData[date]) {
-        journalData[date] = { todos: [], essay: { text: '', images: [] }, mood: '' };
-    }
+    // 添加图片
+    addImageBtn.addEventListener('click', function() {
+        essayImageInput.click();
+    });
     
-    journalData[date].essay = {
-        text: essayText,
-        images: images
-    };
+    essayImageInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const existingImage = essayContent.querySelector('.essay-image-container');
+                if (existingImage) {
+                    existingImage.remove();
+                }// 限制只能上传一张图片
+
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'essay-image-container';
+                imageContainer.innerHTML = `
+                    <img src="${event.target.result}" class="essay-image">
+                    <button class="remove-image" title="删除图片">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                
+                essayContent.appendChild(imageContainer);
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
     
-    localStorage.setItem('journalData', JSON.stringify(journalData));
-    
-    // 清空输入
-    document.getElementById('newEssay').value = '';
-    
-    // 重新加载随笔内容
-    loadJournalData(date);
+    // 保存随笔
+    saveEssayBtn.addEventListener('click', function() {
+        const date = document.getElementById('journalDate').textContent;
+        const essayText = document.getElementById('newEssay').value.trim();
+        const essayContent = document.getElementById('essayContent');
+        
+        // 收集图片的Base64数据
+        let images = [];
+        const imageElement = essayContent.querySelector('.essay-image');
+        if (imageElement) {
+            images.push(imageElement.src);
+        }
+        
+        let journalData = JSON.parse(localStorage.getItem('journalData') || '{}');
+        
+        if (!journalData[date]) {
+            journalData[date] = { todos: [], essay: { text: '', images: [] }, mood: '' };
+        }
+        
+        journalData[date].essay = {
+            text: essayText,
+            images: images
+        };
+        
+        localStorage.setItem('journalData', JSON.stringify(journalData));
+        
+        // 清空输入并重新加载
+        document.getElementById('newEssay').value = '';
+        loadJournalData(date);
+        
+        // 退出编辑模式
+        document.querySelector('.essay-section').classList.remove('essay-edit-mode');
+    });
 }
 
 function initFutureDateSelector(selectedDateStr) {
     const futureTodoDate = document.getElementById('futureTodoDate');
     futureTodoDate.innerHTML = '';
     
-    // 解析选中的日期
     const selectedDateParts = selectedDateStr.match(/(\d+)年(\d+)月(\d+)日/);
     const selectedDate = new Date(
         parseInt(selectedDateParts[1]),
@@ -472,7 +431,7 @@ function addFutureTodo() {
         localStorage.setItem('journalData', JSON.stringify(journalData));
         input.value = '';
         
-        // 重新加载未来待办事项（基于当前选中日期）
+        // 基于当前选中日期,加载未来待办事项
         loadFutureTodos(selectedDateStr);
     }
 }
@@ -493,6 +452,7 @@ function loadFutureTodos(selectedDateStr) {
     let hasFutureTodos = false;
     
     // 为选中日期的未来7天创建任务组
+    // 任务要同步
     for (let i = 1; i <= 7; i++) {
         const date = new Date(selectedDate);
         date.setDate(selectedDate.getDate() + i);
@@ -535,7 +495,7 @@ function loadFutureTodos(selectedDateStr) {
                     </div>
                 `;
                 
-                // 添加复选框事件
+                // 添加复选框
                 li.querySelector('input[type="checkbox"]').addEventListener('change', function() {
                     const date = this.dataset.date;
                     const index = parseInt(this.dataset.index);
@@ -545,12 +505,12 @@ function loadFutureTodos(selectedDateStr) {
                         journalData[date].todos[index].completed = this.checked;
                         localStorage.setItem('journalData', JSON.stringify(journalData));
                         
-                        // 更新UI
-                        this.nextElementSibling.classList.toggle('completed', this.checked);
+                        
+                        this.nextElementSibling.classList.toggle('completed', this.checked);// 更新UI
                     }
                 });
                 
-                // 添加删除事件
+                // 添加删除选项
                 li.querySelector('.delete-future-todo').addEventListener('click', function() {
                     const date = this.dataset.date;
                     const index = parseInt(this.dataset.index);
@@ -560,7 +520,6 @@ function loadFutureTodos(selectedDateStr) {
                         journalData[date].todos.splice(index, 1);
                         localStorage.setItem('journalData', JSON.stringify(journalData));
                         
-                        // 重新加载未来待办事项
                         loadFutureTodos(selectedDateStr);
                     }
                 });
@@ -573,8 +532,6 @@ function loadFutureTodos(selectedDateStr) {
             container.appendChild(group);
         }
     }
-    
-    // 如果没有未来任务，显示提示信息
     if (!hasFutureTodos) {
         container.innerHTML = '<p class="no-future-todos">未来七天暂无待办事项</p>';
     }
