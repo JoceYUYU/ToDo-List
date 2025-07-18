@@ -10,7 +10,9 @@
     --error-color: #ff6b6b;
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+/*日历（最上面）,心情图标日历下面,今日待办事项模块和未来七天任务展示在一列，随笔在右边*/
 
+/*整体*/
 * {
     margin: 0;
     padding: 0;
@@ -25,6 +27,7 @@ body {
     padding: 20px;
 }
 
+/*日历*/
 .app-container {
     max-width: 1000px;
     margin: 0 auto;
@@ -77,7 +80,7 @@ body {
 .calendar.show {
     display: block;
 }
-
+/*关键帧 keyframes 可以控制动画序列的中间步骤。*/
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -167,6 +170,8 @@ body {
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
 }
 
+/*页面*/
+/*顶部，日期+心情*/
 .journal-container {
     padding: 25px;
 }
@@ -223,6 +228,7 @@ body {
     background-color: rgba(255, 159, 67, 0.1);
 }
 
+/*今日待办和未来待办*/
 .journal-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -292,7 +298,6 @@ body {
     justify-content: center;
     font-weight: 500;
 }
-
 
 .todo-input button:hover, #addImage:hover{
     background-color: var(--primary-dark);
@@ -478,6 +483,7 @@ body {
     min-width: 120px;
 }
 
+/*随笔*/
 .essay-section {
     background-color: var(--light-bg);
     padding: 20px;
@@ -520,7 +526,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     margin-bottom: 15px;
-    resize: vertical;
+    resize: vertical;/*可以根据需要拉长输入框*/
     font-size: 15px;
     line-height: 1.6;
     transition: all 0.3s ease;
@@ -556,12 +562,10 @@ body {
 #cancelEditEssay {
     margin-left: auto;
     background-color: var(--error-color);
-    color: white;
 }
 
-#cancelEditEssa:hover {
-    background-color: var(--error-color);
-    color: white;
+#cancelEditEssay:hover {
+    background-color: #d45959;
 }
 
 .essay-content {
@@ -656,6 +660,7 @@ body {
     }
 }
 
+/*手机端*/
 @media (max-width: 480px) {
     body {
         padding: 10px;
